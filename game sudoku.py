@@ -12,8 +12,7 @@ FONT = pygame.font.SysFont("comicsans", 40)
 SMALL_FONT = pygame.font.SysFont("comicsans", 25)
 BACKGROUND_COLOR = (255, 255, 255)
 LINE_COLOR = (0, 0, 0)
-SELECTED_COLOR = (173, 216, 230)
-ERROR_COLOR = (255, 0, 0)
+SELECTED_COLOR = (255, 200, 200)  # Нежно-красный цвет для выбранной клетки
 
 # Функция для отрисовки сетки
 def draw_grid(win):
@@ -74,16 +73,19 @@ def solve(grid):
                 return False
     return True
 
-# Отрисовка чисел
-def draw_numbers(win, grid, selected_cell):
+# Отрисовка чисел и подсветки выбранной клетки
+def draw_numbers_and_highlight(win, grid, selected_cell):
+    # Подсветка выбранной клетки
+    if selected_cell:
+        row, col = selected_cell
+        pygame.draw.rect(win, SELECTED_COLOR, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+    # Отрисовка чисел
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             if grid[row][col] != 0:
                 x, y = col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2
-                color = LINE_COLOR
-                if selected_cell == (row, col):
-                    color = SELECTED_COLOR
-                text = FONT.render(str(grid[row][col]), True, color)
+                text = FONT.render(str(grid[row][col]), True, LINE_COLOR)
                 win.blit(text, text.get_rect(center=(x, y)))
 
 # Основная функция
@@ -102,7 +104,7 @@ def main():
     while running:
         win.fill(BACKGROUND_COLOR)
         draw_grid(win)
-        draw_numbers(win, grid, selected_cell)
+        draw_numbers_and_highlight(win, grid, selected_cell)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -122,4 +124,27 @@ def main():
                     elif event.key == pygame.K_3:
                         grid[row][col] = 3
                     elif event.key == pygame.K_4:
-                        grid[row][col]
+                        grid[row][col] = 4
+                    elif event.key == pygame.K_5:
+                        grid[row][col] = 5
+                    elif event.key == pygame.K_6:
+                        grid[row][col] = 6
+                    elif event.key == pygame.K_7:
+                        grid[row][col] = 7
+                    elif event.key == pygame.K_8:
+                        grid[row][col] = 8
+                    elif event.key == pygame.K_9:
+                        grid[row][col] = 9
+                    elif event.key == pygame.K_BACKSPACE:
+                        grid[row][col] = 0
+                    elif event.key == pygame.K_RETURN:
+                        if grid == solution:
+                            print("Congratulations! You've solved the Sudoku!")
+                            running = False
+
+        pygame.display.update()
+        clock.tick(60)
+
+if __name__ == "__main__":
+    main()
+    pygame.quit()
