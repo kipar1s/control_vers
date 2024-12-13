@@ -17,7 +17,7 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 
 # Настройки FPS
-FPS = 10
+FPS = 15
 
 # Создание экрана
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
