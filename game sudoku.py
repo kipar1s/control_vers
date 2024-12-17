@@ -91,7 +91,7 @@ def draw_numbers_and_highlight(win, grid, selected_cell):
 # Основная функция
 def main():
     win = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Sudoku")
+    pygame.display.set_caption("Судоку")
     clock = pygame.time.Clock()
 
     grid = generate_sudoku()
