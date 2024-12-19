@@ -17,7 +17,8 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 
 # Настройки FPS
-FPS = 15
+FPS_OPTIONS = [5, 10, 15]  # Три уровня скорости
+FPS = FPS_OPTIONS[1]  # По умолчанию средняя скорость
 
 # Создание экрана
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -35,6 +36,32 @@ def start_screen():
     draw_text("Нажмите ПРОБЕЛ для начала", WHITE, WIDTH // 2 - 200, HEIGHT // 2)
     pygame.display.flip()
     wait_for_key(pygame.K_SPACE)
+
+def speed_selection_screen():
+    global FPS
+    screen.fill(BLACK)
+    draw_text("Выберите скорость", WHITE, WIDTH // 2 - 100, HEIGHT // 2 - 100)
+    draw_text("1: Медленно (5 FPS)", WHITE, WIDTH // 2 - 150, HEIGHT // 2 - 50)
+    draw_text("2: Средне (10 FPS)", WHITE, WIDTH // 2 - 150, HEIGHT // 2)
+    draw_text("3: Быстро (15 FPS)", WHITE, WIDTH // 2 - 150, HEIGHT // 2 + 50)
+    draw_text("Нажмите 1, 2 или 3 для выбора", WHITE, WIDTH // 2 - 250, HEIGHT // 2 + 100)
+    pygame.display.flip()
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    FPS = FPS_OPTIONS[0]
+                    return
+                elif event.key == pygame.K_2:
+                    FPS = FPS_OPTIONS[1]
+                    return
+                elif event.key == pygame.K_3:
+                    FPS = FPS_OPTIONS[2]
+                    return
 
 def game_over_screen(score):
     screen.fill(BLACK)
@@ -82,11 +109,14 @@ def draw_food(food):
 
 # Основной игровой цикл
 start_screen()
+speed_selection_screen()  # Выбор скорости
 clock = pygame.time.Clock()
+
 while True:
     if not game_active:
         reset_game()
         start_screen()
+        speed_selection_screen()  # Повторный выбор скорости после перезапуска
 
     screen.fill(BLACK)
     draw_text(f"Очки: {score}", WHITE, 10, 10)
