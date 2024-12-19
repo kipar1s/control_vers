@@ -7,7 +7,7 @@ SIZE_OPTIONS = {1: 4, 2: 6}  # 1 - 4x4, 2 - 6x6
 WIDTH_OPTIONS = {4: 400, 6: 600}
 HEIGHT_OPTIONS = {4: 400, 6: 600}
 TILE_SIZE_OPTIONS = {4: 100, 6: 100}
-FONT_SIZE_OPTIONS = {4: 50, 6: 100}
+FONT_SIZE_OPTIONS = {4: 50, 6: 40}  # Уменьшение шрифта для 6x6
 
 # Цвета
 BACKGROUND_COLOR = (187, 173, 160)
@@ -28,7 +28,7 @@ TILE_COLORS = {
 
 # Инициализация Pygame
 pygame.init()
-font = pygame.font.Font(None, 50)
+font = pygame.font.Font(None, FONT_SIZE_OPTIONS[4])  # Начальный шрифт для 4x4
 
 # Переменные игры
 score = 0
@@ -37,7 +37,6 @@ size = 4
 WIDTH = WIDTH_OPTIONS[size]
 HEIGHT = HEIGHT_OPTIONS[size]
 TILE_SIZE = TILE_SIZE_OPTIONS[size]
-FONT_SIZE = FONT_SIZE_OPTIONS[size]
 
 # Инициализация экрана
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -82,7 +81,6 @@ def slide_left(row):
         if new_row[i] == new_row[i + 1] and new_row[i] != 0:
             new_row[i] *= 2
             score += new_row[i]  # Увеличиваем счет
-            new_row[i + 1] = 0
     new_row = [num for num in new_row if num != 0]
     new_row += [0] * (size - len(new_row))
     return new_row
@@ -128,8 +126,20 @@ def game_over_screen():
     
     pygame.display.update()
 
+def victory_screen():
+    screen.fill((0, 255, 0))
+    victory_text = font.render("You Win!", True, (255, 255, 255))
+    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+    restart_text = font.render("Press R to Restart", True, (255, 255, 255))
+    
+    screen.blit(victory_text, (WIDTH // 2 - victory_text.get_width() // 2, HEIGHT // 2 - 40))
+    screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2))
+    screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 40))
+    
+    pygame.display.update()
+
 def main_menu():
-    global size, WIDTH, HEIGHT, TILE_SIZE, FONT_SIZE
+    global size, WIDTH, HEIGHT, TILE_SIZE, font
     while True:
         screen.fill((0, 0, 0))
         title_text = font.render("2048", True, (255, 255, 255))
@@ -152,14 +162,14 @@ def main_menu():
                     WIDTH = WIDTH_OPTIONS[size]
                     HEIGHT = HEIGHT_OPTIONS[size]
                     TILE_SIZE = TILE_SIZE_OPTIONS[size]
-                    FONT_SIZE = FONT_SIZE_OPTIONS[size]
+                    font = pygame.font.Font(None, FONT_SIZE_OPTIONS[size])  # Установка шрифта для 4x4
                     return init_board()
                 elif event.key == pygame.K_2:
                     size = SIZE_OPTIONS[2]
                     WIDTH = WIDTH_OPTIONS[size]
                     HEIGHT = HEIGHT_OPTIONS[size]
                     TILE_SIZE = TILE_SIZE_OPTIONS[size]
-                    FONT_SIZE = FONT_SIZE_OPTIONS[size]
+                    font = pygame.font.Font(None, FONT_SIZE_OPTIONS[size])  # Установка шрифта для 6x6
                     return init_board()
 
 # Основной игровой цикл
@@ -188,6 +198,22 @@ while True:
             if new_board != board:
                 board = new_board
                 add_new_tile(board)
+
+            # Проверка на победу
+            if any(2048 in row for row in board):
+                victory_screen()
+                while True:  # Ожидание нажатия клавиши для перезапуска
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                            board = init_board()
+                            score = 0
+                            break
+                    else:
+                        continue
+                    break
 
             if not has_moves(board):
                 if score > high_score:
