@@ -31,6 +31,7 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("2048")
 font = pygame.font.Font(None, FONT_SIZE)
+score = 0
 
 # Функции для игры
 def init_board():
@@ -56,14 +57,19 @@ def draw_board(board):
                 text = font.render(str(value), True, (0, 0, 0))
                 text_rect = text.get_rect(center=(j * TILE_SIZE + TILE_SIZE / 2, i * TILE_SIZE + TILE_SIZE / 2))
                 screen.blit(text, text_rect)
+    # Отображение очков
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(score_text, (10, 10))
     pygame.display.update()
 
 def slide_left(row):
+    global score
     new_row = [num for num in row if num != 0]
     new_row += [0] * (SIZE - len(new_row))
     for i in range(SIZE - 1):
         if new_row[i] == new_row[i + 1] and new_row[i] != 0:
             new_row[i] *= 2
+            score += new_row[i]  # Увеличиваем счет
             new_row[i + 1] = 0
     new_row = [num for num in new_row if num != 0]
     new_row += [0] * (SIZE - len(new_row))
@@ -98,6 +104,18 @@ def has_moves(board):
                 return True
     return False
 
+def game_over_screen():
+    screen.fill((0, 0, 0))
+    game_over_text = font.render("Game Over!", True, (255, 255, 255))
+    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+    restart_text = font.render("Press R to Restart", True, (255, 255, 255))
+    
+    screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2 - 40))
+    screen.blit(score_text, (WIDTH // 2 - score_text.get_width() // 2, HEIGHT // 2))
+    screen.blit(restart_text, (WIDTH // 2 - restart_text.get_width() // 2, HEIGHT // 2 + 40))
+    
+    pygame.display.update()
+
 # Основной игровой цикл
 board = init_board()
 while True:
@@ -114,6 +132,10 @@ while True:
                 new_board = move_up(board)
             elif event.key == pygame.K_DOWN:
                 new_board = move_down(board)
+            elif event.key == pygame.K_r:  # Перезапуск игры
+                board = init_board()
+                score = 0
+                continue
             else:
                 continue
 
@@ -122,8 +144,20 @@ while True:
                 add_new_tile(board)
 
             if not has_moves(board):
-                print("Game Over!")
-                pygame.quit()
-                sys.exit()
+                game_over_screen()
+                while True:  # Ожидание нажатия клавиши для перезапуска
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                            board = init_board()
+                            score = 0
+                            break
+                    else:
+                        continue
+                    break
     
     draw_board(board)
+
+Найти еще
