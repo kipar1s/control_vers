@@ -13,6 +13,7 @@ SMALL_FONT = pygame.font.SysFont("comicsans", 25)
 BACKGROUND_COLOR = (255, 255, 255)
 LINE_COLOR = (0, 0, 0)
 SELECTED_COLOR = (255, 200, 200)  # Нежно-красный цвет для выбранной клетки
+SCORE_FONT = pygame.font.SysFont("comicsans", 30)
 
 # Функция для отрисовки сетки
 def draw_grid(win):
@@ -88,23 +89,47 @@ def draw_numbers_and_highlight(win, grid, selected_cell):
                 text = FONT.render(str(grid[row][col]), True, LINE_COLOR)
                 win.blit(text, text.get_rect(center=(x, y)))
 
+# Функция для отображения экрана проигрыша
+def draw_game_over(win, score):
+    win.fill(BACKGROUND_COLOR)
+    game_over_text = FONT.render("Game Over!", True, (255, 0, 0))
+    score_text = SCORE_FONT.render(f"Score: {score}", True, LINE_COLOR)
+    restart_text = SMALL_FONT.render("Press R to Restart", True, LINE_COLOR)
+    
+    win.blit(game_over_text, game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 20)))
+    win.blit(score_text, score_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20)))
+    win.blit(restart_text, restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 60)))
+    pygame.display.update()
+
 # Основная функция
 def main():
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Судоку")
     clock = pygame.time.Clock()
 
+    score = 0
     grid = generate_sudoku()
     solution = [row[:] for row in grid]
     solve(solution)
-    selected_cell = None
+    selected_cell = (0, 0)  # Начальная позиция
     fixed_cells = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if grid[r][c] != 0]
 
     running = True
+    game_over = False
     while running:
         win.fill(BACKGROUND_COLOR)
         draw_grid(win)
         draw_numbers_and_highlight(win, grid, selected_cell)
+
+        if game_over:
+            draw_game_over(win, score)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:  # Перезапуск игры
+                        main()  # Запускаем новую игру
+            continue
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -115,32 +140,35 @@ def main():
                 selected_cell = y // CELL_SIZE, x // CELL_SIZE
 
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected_cell = (max(0, selected_cell[0] - 1), selected_cell[1])
+                elif event.key == pygame.K_DOWN:
+                    selected_cell = (min(GRID_SIZE - 1, selected_cell[0] + 1), selected_cell[1])
+                elif event.key == pygame.K_LEFT:
+                    selected_cell = (selected_cell[0], max(0, selected_cell[1] - 1))
+                elif event.key == pygame.K_RIGHT:
+                    selected_cell = (selected_cell[0], min(GRID_SIZE - 1, selected_cell[1] + 1))
+
                 if selected_cell and selected_cell not in fixed_cells:
                     row, col = selected_cell
-                    if event.key == pygame.K_1:
-                        grid[row][col] = 1
-                    elif event.key == pygame.K_2:
-                        grid[row][col] = 2
-                    elif event.key == pygame.K_3:
-                        grid[row][col] = 3
-                    elif event.key == pygame.K_4:
-                        grid[row][col] = 4
-                    elif event.key == pygame.K_5:
-                        grid[row][col] = 5
-                    elif event.key == pygame.K_6:
-                        grid[row][col] = 6
-                    elif event.key == pygame.K_7:
-                        grid[row][col] = 7
-                    elif event.key == pygame.K_8:
-                        grid[row][col] = 8
-                    elif event.key == pygame.K_9:
-                        grid[row][col] = 9
+                    if event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9]:
+                        num = event.key - pygame.K_0  # Получаем число от нажатой клавиши
+                        grid[row][col] = num
+                        score += 1  # Увеличиваем счет за каждое правильное число
                     elif event.key == pygame.K_BACKSPACE:
                         grid[row][col] = 0
                     elif event.key == pygame.K_RETURN:
                         if grid == solution:
                             print("Congratulations! You've solved the Sudoku!")
                             running = False
+                        else:
+                            print("Incorrect solution!")
+                            game_over = True  # Устанавливаем флаг проигрыша
+                    # Ввод через numpad
+                    elif event.key in [pygame.K_KP1, pygame.K_KP2, pygame.K_KP3, pygame.K_KP4, pygame.K_KP5, pygame.K_KP6, pygame.K_KP7, pygame.K_KP8, pygame.K_KP9]:
+                        num = event.key - pygame.K_KP0  # Получаем число от нажатой клавиши numpad
+                        grid[row][col] = num
+                        score += 1  # Увеличиваем счет за каждое правильное число
 
         pygame.display.update()
         clock.tick(60)
